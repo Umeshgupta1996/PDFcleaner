@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>PDF Cleaner</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://mozilla.github.io/pdf.js/build/pdf.js"></script>
+    <style>
+        #loader {
+            display: none;
+        }
+
+        #dropZone.dragover {
+            border-color: #2563eb;
+            background-color: #f0f9ff;
+        }
+    </style>
+</head>
+
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <h1 class="text-3xl font-bold mb-6">PDF Cleaner</h1>
+
+    <!-- Drag & Drop Zone -->
+    <form id="uploadForm" method="POST" enctype="multipart/form-data"
+        class="bg-white p-6 rounded-lg shadow-md w-96 text-center">
+        <div id="dropZone" class="border-2 border-dashed border-gray-400 p-6 cursor-pointer">
+            <p class="text-gray-600">Drag & Drop PDF or Click to Upload</p>
+            <input type="file" id="pdfInput" name="pdf" accept="application/pdf" class="hidden">
+        </div>
+        <button id="processBtn" type="submit" class="mt-4 px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600">
+            Clean PDF
+        </button>
+    </form>
+
+    <!-- Loader -->
+    <div id="loader" class="mt-4 text-blue-600 font-bold">Processing... Please wait</div>
+
+    <!-- PDF Preview -->
+    <!-- <canvas id="pdfPreview" class="mt-6 border border-gray-300"></canvas> -->
+
+    <script src="/static/main.js"></script>
+</body>
+
+</html>
