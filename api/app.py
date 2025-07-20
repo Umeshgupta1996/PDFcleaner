@@ -3,6 +3,7 @@ import fitz  # PyMuPDF
 import os
 from werkzeug.utils import secure_filename
 from flask_cors import CORS
+import tempfile
 
 app = Flask(__name__)
 CORS(app)  # Allow cross-origin if needed
@@ -86,10 +87,12 @@ def index():
                 ext = ".pdf"
 
             # Define paths dynamically
-            input_path = os.path.join(UPLOAD_FOLDER, filename)
-            cleaned_path = os.path.join(OUTPUT_FOLDER, f"{name}_step1{ext}")
+            temp_dir = tempfile.gettempdir()
+            input_path = os.path.join(temp_dir, filename)
+            cleaned_path = os.path.join(temp_dir, f"{name}_step1.pdf")
+            # final_path = os.path.join(temp_dir, f"{name}_cleaned.pdf")
             final_name = f"{name}_cleaned{ext}"
-            final_path = os.path.join(OUTPUT_FOLDER, final_name)
+            final_path = os.path.join(temp_dir, final_name)
 
             # Save uploaded PDF
             pdf_file.save(input_path)
