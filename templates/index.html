@@ -49,8 +49,14 @@
 
     <!-- PDF Preview -->
     <!-- <canvas id="pdfPreview" class="mt-6 border border-gray-300"></canvas> -->
-
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.min.js"></script>
+<script>
+    // Tell PDF.js where its worker is (needed for rendering)
+    pdfjsLib.GlobalWorkerOptions.workerSrc =
+        "https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.10.111/pdf.worker.min.js";
+</script>
     <script src="/static/main.js"></script>
+  
 </body>
 
 </html>

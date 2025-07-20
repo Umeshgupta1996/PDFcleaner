@@ -115,23 +115,34 @@ uploadForm.addEventListener("submit", function (e) {
 
       const url = data.download_url;
 
+      // Fetch PDF for preview
       const res = await fetch(url);
       const buffer = await res.arrayBuffer();
       const typedarray = new Uint8Array(buffer);
-
       renderPDFtoCanvas(typedarray);
+
+      // 1. Trigger automatic download (for laptop/desktop)
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "cleaned.pdf";
+      document.body.appendChild(link);
+      link.click(); // Auto-download
+      link.remove();
+
+      // 2. Also create the download button (for mobile + fallback)
       createDownloadButton(url);
 
+      // Reset form
       pdfInput.value = "";
       dropZone.querySelector("p").textContent =
         "Drag & Drop PDF's or Click to Upload";
+    })
+    // Remove comment
+    .catch((err) => {
+      alert("Error processing PDF. Check console.");
+      console.error("Processing error:", err);
+      submitButton.disabled = false;
+      submitButton.classList.remove("opacity-50", "cursor-not-allowed");
+      loader.style.display = "none";
     });
-  // Remove comment
-  // .catch((err) => {
-  //   alert("Error processing PDF. Check console.");
-  //   console.error("Processing error:", err);
-  //   submitButton.disabled = false;
-  //   submitButton.classList.remove("opacity-50", "cursor-not-allowed");
-  //   loader.style.display = "none";
-  // });
 });
