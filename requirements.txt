@@ -1,5 +1,2 @@
-Flask
-PyMuPDF
-Werkzeug
+flask
 gunicorn
-requests
