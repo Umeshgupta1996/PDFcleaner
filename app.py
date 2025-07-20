@@ -2,11 +2,8 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import fitz  # PyMuPDF
 import os
 from werkzeug.utils import secure_filename
-# from flask_cors import CORS
-import tempfile
 
 app = Flask(__name__)
-# CORS(app)  # Allow cross-origin if needed
 
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'outputs'
@@ -87,12 +84,10 @@ def index():
                 ext = ".pdf"
 
             # Define paths dynamically
-            temp_dir = tempfile.gettempdir()
-            input_path = os.path.join(temp_dir, filename)
-            cleaned_path = os.path.join(temp_dir, f"{name}_step1.pdf")
-            # final_path = os.path.join(temp_dir, f"{name}_cleaned.pdf")
+            input_path = os.path.join(UPLOAD_FOLDER, filename)
+            cleaned_path = os.path.join(OUTPUT_FOLDER, f"{name}_step1{ext}")
             final_name = f"{name}_cleaned{ext}"
-            final_path = os.path.join(temp_dir, final_name)
+            final_path = os.path.join(OUTPUT_FOLDER, final_name)
 
             # Save uploaded PDF
             pdf_file.save(input_path)
@@ -118,8 +113,5 @@ def download_file(filename):
     return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
 
 
-# if __name__ == "__main__":
-#     app.run(debug=True)
-# Vercel needs this handler
-def handler(event, context):
-    return app(event, context)
+if __name__ == "__main__":
+    app.run(debug=True)
