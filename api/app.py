@@ -2,8 +2,10 @@ from flask import Flask, render_template, request, jsonify, send_from_directory
 import fitz  # PyMuPDF
 import os
 from werkzeug.utils import secure_filename
+from flask_cors import CORS
 
 app = Flask(__name__)
+CORS(app)  # Allow cross-origin if needed
 
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'outputs'
@@ -113,5 +115,8 @@ def download_file(filename):
     return send_from_directory(OUTPUT_FOLDER, filename, as_attachment=True)
 
 
-if __name__ == "__main__":
-    app.run(debug=True)
+# if __name__ == "__main__":
+#     app.run(debug=True)
+# Vercel needs this handler
+def handler(event, context):
+    return app(event, context)
