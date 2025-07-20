@@ -19,11 +19,19 @@
 </head>
 
 <body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="container">
+<h2 class="text-xl font-medium mb-12 max-w-full">This tool is used to upload your PDF. If the PDF contains any tick or
+    cross marks, or if answers are highlighted in
+    green or red (for correct or incorrect answers), it will automatically change all such colors to black and remove
+    those
+    icons.</h2>
+    </div>
+    
     <h1 class="text-3xl font-bold mb-6">PDF Cleaner</h1>
 
     <!-- Drag & Drop Zone -->
     <form id="uploadForm" method="POST" enctype="multipart/form-data"
-        class="bg-white p-6 rounded-lg shadow-md w-96 text-center">
+        class="bg-white p-6 rounded-lg shadow-md w-2/3 lg:w-96 text-center">
         <div id="dropZone" class="border-2 border-dashed border-gray-400 p-6 cursor-pointer">
             <p class="text-gray-600">Drag & Drop PDF or Click to Upload</p>
             <input type="file" id="pdfInput" name="pdf" accept="application/pdf" class="hidden">
@@ -33,6 +41,9 @@
         </button>
     </form>
 
+    <footer>
+        <p class="mt-6 text-gray-600">Made with ❤️ by Umesh Gupta </p>
+    </footer>
     <!-- Loader -->
     <div id="loader" class="mt-4 text-blue-600 font-bold">Processing... Please wait</div>
 
