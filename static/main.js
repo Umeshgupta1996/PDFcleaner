@@ -125,13 +125,13 @@ uploadForm.addEventListener("submit", function (e) {
       pdfInput.value = "";
       dropZone.querySelector("p").textContent =
         "Drag & Drop PDF's or Click to Upload";
-    })
-    // Remove comment
-    .catch((err) => {
-      alert("Error processing PDF. Check console.");
-      console.error("Processing error:", err);
-      submitButton.disabled = false;
-      submitButton.classList.remove("opacity-50", "cursor-not-allowed");
-      loader.style.display = "none";
     });
+  // Remove comment
+  // .catch((err) => {
+  //   alert("Error processing PDF. Check console.");
+  //   console.error("Processing error:", err);
+  //   submitButton.disabled = false;
+  //   submitButton.classList.remove("opacity-50", "cursor-not-allowed");
+  //   loader.style.display = "none";
+  // });
 });
