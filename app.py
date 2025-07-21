@@ -7,72 +7,77 @@ app = Flask(__name__)
 
 UPLOAD_FOLDER = 'uploads'
 OUTPUT_FOLDER = 'outputs'
+FONT_PATH = 'NotoSansDevanagari-Regular.ttf'  # Font file must be in same folder as app.py
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
+# Register the Hindi font globally
+hindi_font_name = "noto"
+if os.path.exists(FONT_PATH):
+    try:
+        hindi_font = fitz.Font(file=FONT_PATH)  # Create a Font object
+        print("Hindi font loaded successfully.")
+    except Exception as e:
+        hindi_font = None
+        print("Failed to load Hindi font. Falling back to Helvetica:", e)
+else:
+    hindi_font = None
+    print(f"Warning: {FONT_PATH} not found. Falling back to Helvetica (Hindi may break).")
 
 def process_pdf(input_path, output_path):
     doc = fitz.open(input_path)
 
     for page in doc:
-        spans_to_fix = []  # store text spans that need color change
+        spans_to_replace = []
 
-        # Loop through all text blocks
+        # Loop through text blocks
         for block in page.get_text("dict")["blocks"]:
             if block["type"] == 0:  # Text block
                 for line in block["lines"]:
                     for span in line["spans"]:
-                        text = span["text"].lower()
+                        text = span["text"]
                         size = span.get("size", 0)
                         color = span.get("color", 0)
+
+                        # Extract RGB from integer color value
                         r = (color >> 16) & 255
                         g = (color >> 8) & 255
                         b = color & 255
 
-                        # Check if text is a watermark (remove it)
+                        # Remove watermark text (as before)
                         if (
-                            "prateek" in text
-                            or "shivalik" in text
-                            or "android app" in text
-                            or size > 40  # diagonal watermark
+                            "prateek" in text.lower()
+                            or "shivalik" in text.lower()
+                            or "android app" in text.lower()
+                            or size > 40
                         ):
                             x0, y0, x1, y1 = span["bbox"]
                             page.add_redact_annot((x0, y0, x1, y1), fill=(1, 1, 1))
                             continue
 
-                        # Convert red or green text (including Hindi) to black
+                        # Detect red or green text (including Hindi)
                         if (r > 150 and g < 100 and b < 100) or (g > 150 and r < 100 and b < 100):
-                            spans_to_fix.append(span)
+                            spans_to_replace.append(span)
 
-        # Apply redaction for watermark text/images
-        for img in page.get_images(full=True):
-            xref = img[0]
-            pix = fitz.Pixmap(doc, xref)
-            if pix.alpha or pix.n - pix.alpha > 0 or pix.width > 400:
-                page.delete_image(xref)
-            pix = None
-
-        # Actually apply redactions (deletes watermarks)
-        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE)
-
-        # Re-insert fixed text spans (red/green -> black)
-        for span in spans_to_fix:
+        # Apply redaction to remove only the spans (red/green text)
+        for span in spans_to_replace:
             x0, y0, x1, y1 = span["bbox"]
             page.add_redact_annot((x0, y0, x1, y1), fill=(1, 1, 1))
-        if spans_to_fix:
+
+        if spans_to_replace:
             page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
-            for span in spans_to_fix:
+            for span in spans_to_replace:
                 x0, y0, x1, y1 = span["bbox"]
+                # Reinsert the same text in **black** at the same position
                 page.insert_text(
                     (x0, y1 - span["size"]),
                     span["text"],
-                    fontname="helv",
+                    # fontname="helv",  # Use built-in Helvetica (supports Hindi if embedded)
                     fontsize=span["size"],
-                    color=(0, 0, 0),  # Always black
+                    color=(0, 0, 0),
                 )
 
-        # Ensure full page white background
-        page.draw_rect(page.rect, color=(1, 1, 1), fill=(1, 1, 1))
+        # Keep background as is (no forced white fill this time)
 
     doc.save(output_path)
 
@@ -96,7 +101,7 @@ def index():
 
             pdf_file.save(input_path)
 
-            # Clean PDF
+            # Clean and fix PDF
             process_pdf(input_path, final_path)
 
             return jsonify({"download_url": f"/download/{final_name}"})
