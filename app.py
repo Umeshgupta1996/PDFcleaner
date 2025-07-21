@@ -11,49 +11,54 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
 
 
-def clean_pdf(input_path, output_path, remove_text="Nikhil Saroha"):
+def process_pdf(input_path, output_path):
     doc = fitz.open(input_path)
-    for page in doc:
-        words = page.get_text("words")
-        page.clean_contents()
-        for x0, y0, x1, y1, word, *_ in words:
-            if not word.strip() or remove_text.lower() in word.lower():
-                continue
-            font_size = max(8, int(y1 - y0))
-            page.insert_textbox(
-                fitz.Rect(x0, y0, x1, y1),
-                word,
-                fontsize=font_size,
-                fontname="helv",
-                color=(0, 0, 0),
-                align=0
-            )
-        for img in page.get_images(full=True):
-            xref = img[0]
-            info = doc.extract_image(xref)
-            width, height = info["width"], info["height"]
-            if width < 50 and height < 50:
-                page.delete_image(xref)
-    doc.save(output_path)
 
-
-def change_red_green_to_black(input_path, output_path):
-    doc = fitz.open(input_path)
     for page in doc:
-        spans_to_fix = []
+        spans_to_fix = []  # store text spans that need color change
+
+        # Loop through all text blocks
         for block in page.get_text("dict")["blocks"]:
-            if block["type"] == 0:
+            if block["type"] == 0:  # Text block
                 for line in block["lines"]:
                     for span in line["spans"]:
+                        text = span["text"].lower()
+                        size = span.get("size", 0)
                         color = span.get("color", 0)
                         r = (color >> 16) & 255
                         g = (color >> 8) & 255
                         b = color & 255
-                        # Detect red or green text
+
+                        # Check if text is a watermark (remove it)
+                        if (
+                            "prateek" in text
+                            or "shivalik" in text
+                            or "android app" in text
+                            or size > 40  # diagonal watermark
+                        ):
+                            x0, y0, x1, y1 = span["bbox"]
+                            page.add_redact_annot((x0, y0, x1, y1), fill=(1, 1, 1))
+                            continue
+
+                        # Convert red or green text (including Hindi) to black
                         if (r > 150 and g < 100 and b < 100) or (g > 150 and r < 100 and b < 100):
                             spans_to_fix.append(span)
+
+        # Apply redaction for watermark text/images
+        for img in page.get_images(full=True):
+            xref = img[0]
+            pix = fitz.Pixmap(doc, xref)
+            if pix.alpha or pix.n - pix.alpha > 0 or pix.width > 400:
+                page.delete_image(xref)
+            pix = None
+
+        # Actually apply redactions (deletes watermarks)
+        page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_REMOVE)
+
+        # Re-insert fixed text spans (red/green -> black)
         for span in spans_to_fix:
-            page.add_redact_annot(span["bbox"], fill=(1, 1, 1))
+            x0, y0, x1, y1 = span["bbox"]
+            page.add_redact_annot((x0, y0, x1, y1), fill=(1, 1, 1))
         if spans_to_fix:
             page.apply_redactions(images=fitz.PDF_REDACT_IMAGE_NONE)
             for span in spans_to_fix:
@@ -63,8 +68,12 @@ def change_red_green_to_black(input_path, output_path):
                     span["text"],
                     fontname="helv",
                     fontsize=span["size"],
-                    color=(0, 0, 0),
+                    color=(0, 0, 0),  # Always black
                 )
+
+        # Ensure full page white background
+        page.draw_rect(page.rect, color=(1, 1, 1), fill=(1, 1, 1))
+
     doc.save(output_path)
 
 
@@ -76,29 +85,20 @@ def index():
                 return jsonify({"error": "No PDF uploaded"}), 400
 
             pdf_file = request.files["pdf"]
-
-            # Secure original filename
             filename = secure_filename(pdf_file.filename)
             name, ext = os.path.splitext(filename)
             if not ext:
                 ext = ".pdf"
 
-            # Define paths dynamically
             input_path = os.path.join(UPLOAD_FOLDER, filename)
-            cleaned_path = os.path.join(OUTPUT_FOLDER, f"{name}_step1{ext}")
             final_name = f"{name}_cleaned{ext}"
             final_path = os.path.join(OUTPUT_FOLDER, final_name)
 
-            # Save uploaded PDF
             pdf_file.save(input_path)
 
-            # Step 1: Clean PDF
-            clean_pdf(input_path, cleaned_path)
+            # Clean PDF
+            process_pdf(input_path, final_path)
 
-            # Step 2: Change red/green text to black
-            change_red_green_to_black(cleaned_path, final_path)
-
-            # Return JSON with dynamic download URL
             return jsonify({"download_url": f"/download/{final_name}"})
 
         except Exception as e:

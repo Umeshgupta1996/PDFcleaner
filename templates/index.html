@@ -19,22 +19,22 @@
     </style>
 </head>
 
-<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center overflow-hidden">
-    <div class="container">
-<h2 class="text-2xl md:text-xl font-medium mb-12 max-w-full">This tool is used to upload your PDF. If the PDF contains any tick or
+<body class="bg-gray-100 min-h-screen flex flex-col items-center justify-center">
+    <div class="container p-5">
+<h2 class="text-xl font-medium mb-12 max-w-full">This tool is used to upload your PDF. If the PDF contains any tick or
     cross marks, or if answers are highlighted in
     green or red (for correct or incorrect answers), it will automatically change all such colors to black and remove
     those
     icons.</h2>
     </div>
     
-    <h1 class="text-4xl md:text-3xl font-bold mb-6">PDF Cleaner</h1>
+    <h1 class="text-2xl md:text-3xl font-bold mb-6">PDF Cleaner</h1>
 
     <!-- Drag & Drop Zone -->
     <form id="uploadForm" method="POST" enctype="multipart/form-data"
         class="bg-white p-6 rounded-lg shadow-md w-2/3 lg:w-96 text-center">
         <div id="dropZone" class="border-2 border-dashed border-gray-400 p-6 cursor-pointer">
-            <p class="text-gray-600 text-2xl lg:text-base">Drag & Drop PDF or Click to Upload</p>
+            <p class="text-gray-600 text-xl lg:text-base">Drag & Drop PDF or Click to Upload</p>
             <input type="file" id="pdfInput" name="pdf" accept="application/pdf" class="hidden">
         </div>
         <button id="processBtn" type="submit" class="mt-4 px-4 py-2 bg-orange-500 text-white rounded hover:bg-orange-600">
